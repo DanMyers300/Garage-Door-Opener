@@ -22,6 +22,7 @@
       buildInputs = with pkgs; [
         espflash
         esp-generate
+        espup
         (rustToolchain.withComponents [
           "cargo"
           "rustc"
