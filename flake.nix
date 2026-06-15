@@ -19,7 +19,9 @@
   in {
     devShell."${system}" = pkgs.mkShell {
       name = "servo";
-      buildInputs = [
+      buildInputs = with pkgs; [
+        espflash
+        esp-generate
         (rustToolchain.withComponents [
           "cargo"
           "rustc"
