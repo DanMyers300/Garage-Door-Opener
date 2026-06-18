@@ -1,3 +1,0 @@
-cargo:rustc-link-search=/home/dan/.dev/repos/Garage-Door-Opener/target/debug/build/esp32-1fb32144bd923dfe/out
-cargo:rerun-if-changed=device.x
-cargo:rerun-if-changed=build.rs
