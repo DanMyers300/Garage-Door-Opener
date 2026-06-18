@@ -27,10 +27,10 @@
       cargoBuildOptions = [
       ];
 
-      cargoHash = "";
+      cargoHash = "sha256-no2nRB0xO3Ki8vQDHxUasK4vc+QaTI8GOEwL5BCscoc=";
 
       installPhase = ''
-        cargo build
+        cargo run
       '';
 
       meta = with pkgs.lib; {
