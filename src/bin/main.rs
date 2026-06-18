@@ -1,63 +1,89 @@
 #![no_std]
 #![no_main]
 #![deny(
-  clippy::mem_forget,
-  reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
-  holding buffers for the duration of a data transfer."
+    clippy::mem_forget, reason = "mem::forget is generally not safe to do with esp_hal types, especially those \
+    holding buffers for the duration of a data transfer."
 )]
-#![deny(clippy::large_stack_frames)]
 
-use esp_hal::{
-  clock::CpuClock,
-  main,
-  time::{Duration, Instant},
-};
+use esp_hal::clock::CpuClock;
+use esp_hal::delay::Delay;
+use esp_hal::main;
 
+// LEDC
+use esp_hal::gpio::DriveMode;
+use esp_hal::ledc::channel::ChannelIFace;
+use esp_hal::ledc::timer::TimerIFace;
+use esp_hal::ledc::{HighSpeed, Ledc, channel, timer};
+use esp_hal::time::Rate;
+
+use embedded_hal::pwm::SetDutyCycle;
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
-  loop {}
+    loop {}
 }
-
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
 
-#[allow(
-  clippy::large_stack_frames,
-  reason = "it's not unusual to allocate larger buffers etc. in main"
-)]
 #[main]
 fn main() -> ! {
-  // generator version: 1.3.0
-  // generator parameters: --chip esp32 -o unstable-hal -o esp32-wroom-32
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
 
-  let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
-  let peripherals = esp_hal::init(config);
+    let mut servo = peripherals.GPIO33;
+    let ledc = Ledc::new(peripherals.LEDC);
 
-// The following pins are used to bootstrap the chip. They are available
-// for use, but check the datasheet of the module for more information on them.
-// - GPIO0
-//
-// These GPIO pins are in use by some feature of the module and should not be used.
-// - GPIO2
-// - GPIO5
-// - GPIO12
-// - GPIO15
-// ---------
+    let mut hstimer0 = ledc.timer::<HighSpeed>(timer::Number::Timer0);
+    hstimer0
+        .configure(timer::config::Config {
+            duty: timer::config::Duty::Duty12Bit,
+            clock_source: timer::HSClockSource::APBClk,
+            frequency: Rate::from_hz(50),
+        })
+        .unwrap();
 
-  let _ = peripherals.GPIO6;
-  let _ = peripherals.GPIO7;
-  let _ = peripherals.GPIO8;
-  let _ = peripherals.GPIO9;
-  let _ = peripherals.GPIO10;
-  let _ = peripherals.GPIO11;
-  let _ = peripherals.GPIO16;
-  let _ = peripherals.GPIO20;
+    let mut channel0 = ledc.channel(channel::Number::Channel0, servo.reborrow());
+    channel0
+        .configure(channel::config::Config {
+            timer: &hstimer0,
+            duty_pct: 10,
+            drive_mode: DriveMode::PushPull,
+        })
+        .unwrap();
 
-  loop {
-    let delay_start = Instant::now();
-    while delay_start.elapsed() < Duration::from_millis(500) {}
-  }
+    let delay = Delay::new();
+
+    let max_duty_cycle = channel0.max_duty_cycle() as u32;
+
+    // Minimum duty (2.5%)
+    // For 12bit -> 25 * 4096 /1000 => ~ 102
+    let min_duty = (25 * max_duty_cycle) / 1000;
+    // Maximum duty (12.5%)
+    // For 12bit -> 125 * 4096 /1000 => 512
+    let max_duty = (125 * max_duty_cycle) / 1000;
+    // 512 - 102 => 410
+    let duty_gap = max_duty - min_duty;
+
+    loop {
+        for deg in 0..=180 {
+            let duty = duty_from_angle(deg, min_duty, duty_gap);
+            channel0.set_duty_cycle(duty).unwrap();
+            delay.delay_millis(10);
+        }
+        delay.delay_millis(500);
+
+        for deg in (0..=180).rev() {
+            let duty = duty_from_angle(deg, min_duty, duty_gap);
+            channel0.set_duty_cycle(duty).unwrap();
+            delay.delay_millis(10);
+        }
+        delay.delay_millis(500);
+    }
+}
+
+fn duty_from_angle(deg: u32, min_duty: u32, duty_gap: u32) -> u16 {
+    let duty = min_duty + ((deg * duty_gap) / 180);
+    duty as u16
 }

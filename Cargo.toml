@@ -2,6 +2,9 @@
 edition      = "2024"
 name         = "garage-door-opener"
 rust-version = "1.88"
+test         = false
+bench        = false
+doctest      = false
 version      = "0.1.0"
 
 [[bin]]
