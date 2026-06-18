@@ -3,16 +3,6 @@
 version = 4
 
 [[package]]
-name = "Garage-Door-Opener"
-version = "0.1.0"
-dependencies = [
- "critical-section",
- "embedded-hal 1.0.0",
- "esp-bootloader-esp-idf",
- "esp-hal",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -623,6 +613,16 @@ dependencies = [
  "futures-core",
  "futures-task",
  "pin-project-lite",
+]
+
+[[package]]
+name = "garage-door-opener"
+version = "0.1.0"
+dependencies = [
+ "critical-section",
+ "embedded-hal 1.0.0",
+ "esp-bootloader-esp-idf",
+ "esp-hal",
 ]
 
 [[package]]

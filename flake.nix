@@ -1,35 +1,23 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    fenix = {
-      url = "github:nix-community/fenix";
+    esp = {
+      url = "github:leighleighleigh/esp-rs-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
-  outputs = { self, nixpkgs, fenix, ... }: let
+
+  outputs = { self, nixpkgs, esp, ... }: let
     system = "x86_64-linux";
-    pkgs = import nixpkgs {
-      inherit system;
-    };
-    rustToolchain = fenix.packages.${system}.toolchainOf {
-      channel = "nightly";
-      date = "2025-04-27";
-      sha256 = "sha256-DnyK5MS+xYySA+csnnMogu2gtEfyiy10W0ATmAvmjGg=";
-    };
+    pkgs = import nixpkgs { inherit system; };
+    esp-toolchain = esp.packages.${system}.default;
   in {
-    devShell."${system}" = pkgs.mkShell {
-      name = "servo";
+    devShells.${system}.default = pkgs.mkShell {
+      name = "garage-door-opener";
       buildInputs = with pkgs; [
         espflash
         esp-generate
-        espup
-        rustup
-        (rustToolchain.withComponents [
-          "cargo"
-          "rustc"
-          "rust-src"
-          "clippy"
-        ])
+        esp-toolchain
       ];
     };
   };
