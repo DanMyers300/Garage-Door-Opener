@@ -16,9 +16,13 @@
       date = "2025-04-27";
       sha256 = "sha256-DnyK5MS+xYySA+csnnMogu2gtEfyiy10W0ATmAvmjGg=";
     };
+    rustPlatform = pkgs.makeRustPlatform {
+      cargo = rustToolchain.toolchain;
+      rustc = rustToolchain.toolchain;
+    };
   in {
 
-    packages."${system}".default = pkgs.rustPlatform.buildRustPackage {
+    packages."${system}".default = rustPlatform.buildRustPackage {
       pname = "Garage Door Opener";
       version = "0.0.1";
 
