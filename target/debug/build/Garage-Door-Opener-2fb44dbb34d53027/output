@@ -1,0 +1,2 @@
+cargo:rustc-link-arg=-Wl,--error-handling-script=/home/dan/.dev/repos/Garage-Door-Opener/target/debug/build/Garage-Door-Opener-91d5ac1146f97626/build-script-build
+cargo:rustc-link-arg=-Tlinkall.x

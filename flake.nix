@@ -17,6 +17,29 @@
       sha256 = "sha256-DnyK5MS+xYySA+csnnMogu2gtEfyiy10W0ATmAvmjGg=";
     };
   in {
+
+    packages."${system}".default = pkgs.rustPlatform.buildRustPackage {
+      pname = "Garage Door Opener";
+      version = "0.0.1";
+
+      src = ./.;
+
+      cargoBuildOptions = [
+      ];
+
+      cargoHash = "";
+
+      installPhase = ''
+        cargo build
+      '';
+
+      meta = with pkgs.lib; {
+        description = "Simple servo motor garage door opener";
+        license = licenses.mit;
+        maintainers = [ maintainers.dan ];
+      };
+    };
+
     devShell."${system}" = pkgs.mkShell {
       name = "servo";
       buildInputs = with pkgs; [
