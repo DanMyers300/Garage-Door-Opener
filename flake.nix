@@ -16,40 +16,14 @@
       date = "2025-04-27";
       sha256 = "sha256-DnyK5MS+xYySA+csnnMogu2gtEfyiy10W0ATmAvmjGg=";
     };
-    rustPlatform = pkgs.makeRustPlatform {
-      cargo = rustToolchain.toolchain;
-      rustc = rustToolchain.toolchain;
-    };
   in {
-
-    packages."${system}".default = rustPlatform.buildRustPackage {
-      pname = "Garage Door Opener";
-      version = "0.0.1";
-
-      src = ./.;
-
-      cargoBuildOptions = [
-      ];
-
-      cargoHash = "sha256-no2nRB0xO3Ki8vQDHxUasK4vc+QaTI8GOEwL5BCscoc=";
-
-      installPhase = ''
-        cargo run
-      '';
-
-      meta = with pkgs.lib; {
-        description = "Simple servo motor garage door opener";
-        license = licenses.mit;
-        maintainers = [ maintainers.dan ];
-      };
-    };
-
     devShell."${system}" = pkgs.mkShell {
       name = "servo";
       buildInputs = with pkgs; [
         espflash
         esp-generate
         espup
+        rustup
         (rustToolchain.withComponents [
           "cargo"
           "rustc"
